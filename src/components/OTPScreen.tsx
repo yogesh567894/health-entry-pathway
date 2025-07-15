@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Shield, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Shield, CheckCircle2 } from 'lucide-react';
 
 interface OTPScreenProps {
   phoneNumber: string;
@@ -10,7 +10,6 @@ interface OTPScreenProps {
 
 const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
@@ -42,8 +41,6 @@ const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
     newOtp[index] = value;
     setOtp(newOtp);
     
-    if (error) setError('');
-    
     // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
@@ -68,35 +65,16 @@ const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
     }
   };
 
-  const isOtpComplete = otp.every(digit => digit !== '');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isOtpComplete) {
-      setError('Please enter the complete 6-digit code');
-      return;
-    }
-
-    const otpCode = otp.join('');
-    
-    // Simple validation - in real app, this would be server-side
-    if (otpCode !== '123456') {
-      setError('Invalid verification code. Please try again.');
-      return;
-    }
-
     setIsLoading(true);
-    setError('');
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    // Dummy implementation - automatically proceed after short delay
+    setTimeout(() => {
       onNext();
-    } catch (err) {
-      setError('Verification failed. Please try again.');
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   const handleResend = async () => {
@@ -104,7 +82,6 @@ const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
     
     setCanResend(false);
     setResendTimer(30);
-    setError('');
     
     // Simulate resend API call
     setTimeout(() => {
@@ -165,28 +142,18 @@ const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
                   value={digit}
                   onChange={(e) => handleOtpChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-xl
-                    ${error ? 'border-red-500' : 'border-gray-200'} 
-                    focus:border-[hsl(var(--medical-blue))] focus:outline-none focus:ring-4 
-                    focus:ring-[hsl(var(--medical-blue))]/10 transition-all duration-200`}
+                  className="w-12 h-14 text-center text-xl font-bold border-2 rounded-xl border-gray-200 focus:border-[hsl(var(--medical-blue))] focus:outline-none focus:ring-4 focus:ring-[hsl(var(--medical-blue))]/10 transition-all duration-200"
                   disabled={isLoading}
                   aria-label={`Digit ${index + 1}`}
                 />
               ))}
             </div>
-            
-            {error && (
-              <div className="medical-error justify-center mt-4">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            )}
           </div>
 
           {/* Verify Button */}
           <button
             type="submit"
-            disabled={!isOtpComplete || isLoading}
+            disabled={isLoading}
             className="medical-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
@@ -220,10 +187,10 @@ const OTPScreen = ({ phoneNumber, onNext, onBack }: OTPScreenProps) => {
           </div>
         </form>
 
-        {/* Demo Hint */}
+        {/* Demo Notice */}
         <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <p className="text-sm text-yellow-800 text-center">
-            <span className="font-semibold">Demo Mode:</span> Enter "123456" to continue
+            <span className="font-semibold">Demo Mode:</span> Any code (or no code) will work - this will automatically proceed to dashboard
           </p>
         </div>
       </div>

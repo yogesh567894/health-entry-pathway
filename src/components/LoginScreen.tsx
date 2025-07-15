@@ -9,25 +9,7 @@ interface LoginScreenProps {
 
 const LoginScreen = ({ onNext, onBack }: LoginScreenProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const validatePhoneNumber = (phone: string) => {
-    // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, '');
-    
-    // Check if it's a valid US phone number (10 digits)
-    if (cleaned.length !== 10) {
-      return false;
-    }
-    
-    // Check if it starts with a valid area code (not 0 or 1)
-    if (cleaned[0] === '0' || cleaned[0] === '1') {
-      return false;
-    }
-    
-    return true;
-  };
 
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digit characters
@@ -49,29 +31,19 @@ const LoginScreen = ({ onNext, onBack }: LoginScreenProps) => {
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
     setPhoneNumber(formatted);
-    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePhoneNumber(phoneNumber)) {
-      setError('Please enter a valid 10-digit phone number');
-      return;
-    }
-
     setIsLoading(true);
-    setError('');
 
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onNext(phoneNumber);
-    } catch (err) {
-      setError('Failed to send OTP. Please try again.');
-    } finally {
+    // Dummy implementation - automatically proceed after short delay
+    setTimeout(() => {
+      const dummyPhone = phoneNumber || "(555) 123-4567";
+      onNext(dummyPhone);
       setIsLoading(false);
-    }
+    }, 800);
   };
 
   return (
@@ -109,22 +81,15 @@ const LoginScreen = ({ onNext, onBack }: LoginScreenProps) => {
               value={phoneNumber}
               onChange={handlePhoneNumberChange}
               placeholder="(555) 123-4567"
-              className={`medical-input ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : ''}`}
+              className="medical-input"
               disabled={isLoading}
               autoComplete="tel"
-              aria-describedby={error ? 'phone-error' : undefined}
             />
-            {error && (
-              <div id="phone-error" className="medical-error">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            )}
           </div>
 
           <button
             type="submit"
-            disabled={isLoading || phoneNumber.length === 0}
+            disabled={isLoading}
             className="medical-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
@@ -138,10 +103,10 @@ const LoginScreen = ({ onNext, onBack }: LoginScreenProps) => {
           </button>
         </form>
 
-        {/* Security Notice */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-gray-700 text-center">
-            <span className="font-semibold">Secure Login:</span> Your phone number is encrypted and used only for verification purposes.
+        {/* Demo Notice */}
+        <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-800 text-center">
+            <span className="font-semibold">Demo Mode:</span> Any phone number will work - this will automatically proceed to OTP verification
           </p>
         </div>
       </div>
