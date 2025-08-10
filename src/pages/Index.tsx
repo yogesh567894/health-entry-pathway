@@ -1,8 +1,8 @@
 
-import PatientLogin from "@/components/PatientLogin";
+import VitalsApp from "@/components/VitalsApp";
 
 const Index = () => {
-  return <PatientLogin />;
+  return <VitalsApp />;
 };
 
 export default Index;
