@@ -1,12 +1,14 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import { Heart, Activity, Thermometer, Calendar, Bell, User, LogOut, TrendingUp } from 'lucide-react';
 
 interface DashboardPreviewProps {
   onLogout: () => void;
+  onCaptureVitals?: () => void;
 }
 
-const DashboardPreview = ({ onLogout }: DashboardPreviewProps) => {
+const DashboardPreview = ({ onLogout, onCaptureVitals }: DashboardPreviewProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -39,9 +41,16 @@ const DashboardPreview = ({ onLogout }: DashboardPreviewProps) => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, Sarah!</h2>
-          <p className="text-gray-600">Here's your health summary for today</p>
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back, Sarah!</h2>
+            <p className="text-gray-600">Here's your health summary for today</p>
+          </div>
+          {onCaptureVitals && (
+            <Button onClick={onCaptureVitals} className="medical-btn-primary">
+              Capture Vitals
+            </Button>
+          )}
         </div>
 
         {/* Stats Grid */}

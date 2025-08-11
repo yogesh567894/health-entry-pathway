@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useVitalsDemo } from '@/context/VitalsDemoContext';
 import { Camera, X, RotateCcw, Play, Square } from 'lucide-react';
 
 interface CameraInterfaceProps {
@@ -9,11 +11,12 @@ interface CameraInterfaceProps {
 }
 
 const CameraInterface = ({ onComplete, onBack }: CameraInterfaceProps) => {
+  const { settings } = useVitalsDemo();
   const [isRecording, setIsRecording] = useState(false);
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [stage, setStage] = useState<'ready' | 'recording' | 'complete'>('ready');
-
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
@@ -36,12 +39,19 @@ const CameraInterface = ({ onComplete, onBack }: CameraInterfaceProps) => {
     return () => clearInterval(interval);
   }, [isRecording, progress]);
 
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    setStage('recording');
-    setProgress(0);
-    setTimeRemaining(30);
-  };
+const handleStartRecording = () => {
+  if (settings.forceCameraPermissionDenied) {
+    setError('Camera permission denied. Please enable camera access.');
+    setIsRecording(false);
+    setStage('ready');
+    return;
+  }
+  setError(null);
+  setIsRecording(true);
+  setStage('recording');
+  setProgress(0);
+  setTimeRemaining(30);
+};
 
   const handleStopRecording = () => {
     setIsRecording(false);
@@ -74,6 +84,15 @@ const CameraInterface = ({ onComplete, onBack }: CameraInterfaceProps) => {
         <h2 className="text-white text-lg font-semibold">Vitals Recording</h2>
         <div className="w-10"></div>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="px-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Camera Preview Area */}
       <div className="flex-1 relative flex items-center justify-center">
@@ -134,14 +153,25 @@ const CameraInterface = ({ onComplete, onBack }: CameraInterfaceProps) => {
       {/* Controls */}
       <div className="p-6 bg-black/50">
         <div className="flex justify-center gap-4">
-          {stage === 'ready' && (
-            <Button
-              onClick={handleStartRecording}
-              className="bg-green-600 hover:bg-green-700 text-white h-16 px-8 text-lg font-semibold rounded-full"
-            >
-              <Play className="w-6 h-6 mr-2" />
-              Start Recording
-            </Button>
+{stage === 'ready' && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                onClick={handleStartRecording}
+                className="bg-green-600 hover:bg-green-700 text-white h-16 px-8 text-lg font-semibold rounded-full"
+              >
+                <Play className="w-6 h-6 mr-2" />
+                Start Recording
+              </Button>
+              {error && (
+                <Button
+                  variant="outline"
+                  onClick={() => setError(null)}
+                  className="h-16 px-6"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
           )}
 
           {stage === 'recording' && (
