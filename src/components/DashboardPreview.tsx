@@ -6,37 +6,42 @@ import { Heart, Activity, Thermometer, Calendar, Bell, User, LogOut, TrendingUp 
 interface DashboardPreviewProps {
   onLogout: () => void;
   onCaptureVitals?: () => void;
+  showHeader?: boolean;
 }
 
-const DashboardPreview = ({ onLogout, onCaptureVitals }: DashboardPreviewProps) => {
+const DashboardPreview = ({ onLogout, onCaptureVitals, showHeader = true }: DashboardPreviewProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-[hsl(var(--medical-blue))] rounded-lg flex items-center justify-center mr-3">
-                <Heart className="w-5 h-5 text-white" />
+{showHeader && (
+        <>
+          {/* Header */}
+          <header className="bg-white shadow-sm border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-[hsl(var(--medical-blue))] rounded-lg flex items-center justify-center mr-3">
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <h1 className="text-xl font-semibold text-gray-900">HealthMonitor</h1>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button className="relative p-2 text-gray-600 hover:text-gray-900">
+                    <Bell className="w-6 h-6" />
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                  </button>
+                  <button 
+                    onClick={onLogout}
+                    className="flex items-center text-gray-600 hover:text-gray-900"
+                  >
+                    <LogOut className="w-5 h-5 mr-2" />
+                    Logout
+                  </button>
+                </div>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">HealthMonitor</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-600 hover:text-gray-900">
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button 
-                onClick={onLogout}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <LogOut className="w-5 h-5 mr-2" />
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+          </header>
+        </>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

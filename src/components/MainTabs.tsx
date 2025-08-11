@@ -29,7 +29,7 @@ const MainTabs = () => {
       {/* Content */}
       <div className="flex-1">
         <TabsContent value="dashboard" className="m-0">
-          <DashboardPreview onLogout={() => setValue('vitals')} onCaptureVitals={() => setValue('vitals')} />
+          <DashboardPreview showHeader={false} onLogout={() => setValue('vitals')} onCaptureVitals={() => setValue('vitals')} />
         </TabsContent>
         <TabsContent value="vitals" className="m-0">
           <VitalsApp />
