@@ -16,14 +16,14 @@ import { Dimensions } from 'react-native';
 
 import Button from '../components/Button';
 import Card from '../components/Card';
+import VitalCard from '../components/VitalCard';
+import VitalsChart from '../components/VitalsChart';
 import { RootStackParamList } from '../navigation/MainNavigator';
 import { colors } from '../styles/colors';
 import { typography } from '../styles/typography';
 import { spacing } from '../styles/spacing';
 
 type ResultsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Results'>;
-
-const screenWidth = Dimensions.get('window').width;
 
 const ResultsScreen: React.FC = () => {
   const navigation = useNavigation<ResultsScreenNavigationProp>();
@@ -84,6 +84,7 @@ const ResultsScreen: React.FC = () => {
       unit: 'BPM',
       color: colors.medicalRed,
       status: getVitalStatus('heartRate', vitals.heartRate),
+      trend: 'stable',
     },
     {
       icon: 'opacity',
@@ -92,6 +93,7 @@ const ResultsScreen: React.FC = () => {
       unit: '%',
       color: colors.primary,
       status: getVitalStatus('spO2', vitals.spO2),
+      trend: 'up',
     },
     {
       icon: 'show-chart',
@@ -100,6 +102,7 @@ const ResultsScreen: React.FC = () => {
       unit: 'mmHg',
       color: colors.medicalGreen,
       status: getVitalStatus('bloodPressure', vitals.bloodPressure),
+      trend: 'stable',
     },
     {
       icon: 'device-thermostat',
@@ -108,6 +111,7 @@ const ResultsScreen: React.FC = () => {
       unit: '°C',
       color: colors.medicalOrange,
       status: getVitalStatus('temperature', vitals.temperature),
+      trend: 'stable',
     },
   ];
 
@@ -163,20 +167,16 @@ const ResultsScreen: React.FC = () => {
         {/* Vitals Grid */}
         <View style={styles.vitalsGrid}>
           {vitalsData.map((vital, index) => (
-            <Card key={index} style={styles.vitalCard}>
-              <View style={styles.vitalHeader}>
-                <View style={[styles.vitalIcon, { backgroundColor: vital.color + '20' }]}>
-                  <Icon name={vital.icon} size={24} color={vital.color} />
-                </View>
-                <View style={[styles.statusDot, { backgroundColor: vital.status.color }]} />
-              </View>
-              <Text style={styles.vitalValue}>{vital.value}</Text>
-              <Text style={styles.vitalUnit}>{vital.unit}</Text>
-              <Text style={styles.vitalTitle}>{vital.title}</Text>
-              <Text style={[styles.vitalStatus, { color: vital.status.color }]}>
-                {vital.status.status}
-              </Text>
-            </Card>
+            <VitalCard
+              key={index}
+              icon={vital.icon}
+              title={vital.title}
+              value={vital.value}
+              unit={vital.unit}
+              status={vital.status.status as 'normal' | 'warning' | 'error'}
+              color={vital.color}
+              trend={vital.trend as 'up' | 'down' | 'stable'}
+            />
           ))}
         </View>
 
@@ -199,17 +199,11 @@ const ResultsScreen: React.FC = () => {
         </Card>
 
         {/* 7-Day Trend Chart */}
-        <Card style={styles.chartCard}>
-          <Text style={styles.chartTitle}>7-Day Heart Rate Trend</Text>
-          <LineChart
-            data={trendData}
-            width={screenWidth - (spacing.lg * 4)} // Account for card padding
-            height={200}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-          />
-        </Card>
+        <VitalsChart
+          data={trendData}
+          title="7-Day Heart Rate Trend"
+          height={200}
+        />
 
         {/* Export Actions */}
         <View style={styles.exportSection}>
@@ -277,46 +271,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
   },
-  vitalCard: {
-    width: '48%',
-    marginBottom: spacing.md,
-  },
-  vitalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  vitalIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  vitalValue: {
-    ...typography.h2,
-    marginBottom: spacing.xs,
-  },
-  vitalUnit: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  vitalTitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  vitalStatus: {
-    ...typography.small,
-    fontWeight: '600',
-  },
   summaryCard: {
     marginBottom: spacing.lg,
   },
@@ -351,17 +305,6 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
     lineHeight: 18,
-  },
-  chartCard: {
-    marginBottom: spacing.lg,
-  },
-  chartTitle: {
-    ...typography.h4,
-    marginBottom: spacing.md,
-  },
-  chart: {
-    marginVertical: spacing.sm,
-    borderRadius: 16,
   },
   exportSection: {
     marginBottom: spacing.xl,

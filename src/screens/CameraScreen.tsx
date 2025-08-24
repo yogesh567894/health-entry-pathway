@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  Vibration,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -13,7 +14,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Circle } from 'react-native-progress';
 
 import Button from '../components/Button';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useVitalsDemo } from '../context/VitalsDemoContext';
+import { usePermissions } from '../hooks/usePermissions';
+import { useVitalsCapture } from '../hooks/useVitalsCapture';
 import { RootStackParamList } from '../navigation/MainNavigator';
 import { colors } from '../styles/colors';
 import { typography } from '../styles/typography';
@@ -24,59 +28,69 @@ type CameraScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Camer
 const CameraScreen: React.FC = () => {
   const navigation = useNavigation<CameraScreenNavigationProp>();
   const { settings } = useVitalsDemo();
+  const { cameraPermission, requestCameraPermission } = usePermissions();
+  const {
+    stage,
+    progress,
+    timeRemaining,
+    error,
+    startRecording,
+    stopRecording,
+    resetCapture,
+  } = useVitalsCapture();
   
-  const [isRecording, setIsRecording] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(30);
-  const [stage, setStage] = useState<'ready' | 'recording' | 'complete'>('ready');
-  const [error, setError] = useState<string | null>(null);
+  const [permissionChecked, setPermissionChecked] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isRecording && progress < 1) {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          const newProgress = prev + (1 / 30); // 30 seconds total
-          if (newProgress >= 1) {
-            setIsRecording(false);
-            setStage('complete');
-            setTimeRemaining(0);
-            return 1;
-          }
-          setTimeRemaining(Math.ceil((1 - newProgress) * 30));
-          return newProgress;
-        });
-      }, 1000);
-    }
+    checkPermissions();
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [isRecording, progress]);
-
-  const handleStartRecording = () => {
+  const checkPermissions = async () => {
     if (settings.forceCameraPermissionDenied) {
-      setError('Camera permission denied. Please enable camera access.');
+      setPermissionChecked(true);
       return;
     }
     
-    setError(null);
-    setIsRecording(true);
-    setStage('recording');
-    setProgress(0);
-    setTimeRemaining(30);
+    const status = await requestCameraPermission();
+    setPermissionChecked(true);
+    
+    if (status !== 'granted') {
+      Alert.alert(
+        'Camera Permission Required',
+        'Please enable camera access in your device settings to capture vitals.',
+        [
+          { text: 'Cancel', onPress: () => navigation.goBack() },
+          { text: 'Settings', onPress: () => {/* Open settings */} },
+        ]
+      );
+    }
+  };
+
+  const handleStartRecording = async () => {
+    if (settings.forceCameraPermissionDenied) {
+      Alert.alert('Permission Denied', 'Camera permission denied. Please enable camera access.');
+      return;
+    }
+    
+    if (cameraPermission !== 'granted') {
+      const status = await requestCameraPermission();
+      if (status !== 'granted') {
+        return;
+      }
+    }
+    
+    // Haptic feedback
+    Vibration.vibrate(50);
+    startRecording();
   };
 
   const handleStopRecording = () => {
-    setIsRecording(false);
-    setStage('complete');
+    Vibration.vibrate(50);
+    stopRecording();
   };
 
   const handleRetake = () => {
-    setIsRecording(false);
-    setStage('ready');
-    setProgress(0);
-    setTimeRemaining(30);
-    setError(null);
+    resetCapture();
   };
 
   const handleContinue = () => {
@@ -86,6 +100,10 @@ const CameraScreen: React.FC = () => {
   const handleBack = () => {
     navigation.goBack();
   };
+
+  if (!permissionChecked) {
+    return <LoadingSpinner message="Checking camera permissions..." />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -124,7 +142,7 @@ const CameraScreen: React.FC = () => {
           </View>
 
           {/* Recording indicator */}
-          {isRecording && (
+          {stage === 'recording' && (
             <View style={styles.recordingIndicator}>
               <View style={styles.recordingDot} />
               <Text style={styles.recordingText}>REC</Text>
@@ -156,17 +174,17 @@ const CameraScreen: React.FC = () => {
       </View>
 
       {/* Progress Bar */}
-      {(isRecording || stage === 'complete') && (
+      {(stage === 'recording' || stage === 'complete') && (
         <View style={styles.progressContainer}>
           <Circle
-            progress={progress}
+            progress={progress / 100}
             size={80}
             thickness={4}
             color={colors.medicalGreen}
             unfilledColor={colors.border}
             borderWidth={0}
             showsText
-            formatText={() => `${Math.round(progress * 100)}%`}
+            formatText={() => `${Math.round(progress)}%`}
             textStyle={styles.progressText}
           />
         </View>
@@ -183,14 +201,6 @@ const CameraScreen: React.FC = () => {
               style={[styles.controlButton, { backgroundColor: colors.medicalGreen }]}
               icon={<Icon name="play-arrow" size={24} color={colors.white} style={{ marginRight: spacing.sm }} />}
             />
-            {error && (
-              <Button
-                title="Retry"
-                onPress={() => setError(null)}
-                variant="outline"
-                style={styles.retryButton}
-              />
-            )}
           </View>
         )}
 

@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import Button from '../components/Button';
 import Card from '../components/Card';
+import VitalCard from '../components/VitalCard';
 import { RootStackParamList } from '../navigation/MainNavigator';
 import { colors } from '../styles/colors';
 import { typography } from '../styles/typography';
@@ -35,6 +36,7 @@ const DashboardScreen: React.FC = () => {
       unit: 'BPM',
       status: 'normal',
       color: colors.medicalRed,
+      trend: 'stable',
     },
     {
       icon: 'opacity',
@@ -43,6 +45,7 @@ const DashboardScreen: React.FC = () => {
       unit: '%',
       status: 'normal',
       color: colors.primary,
+      trend: 'up',
     },
     {
       icon: 'show-chart',
@@ -51,6 +54,7 @@ const DashboardScreen: React.FC = () => {
       unit: 'mmHg',
       status: 'optimal',
       color: colors.medicalGreen,
+      trend: 'stable',
     },
     {
       icon: 'device-thermostat',
@@ -59,6 +63,7 @@ const DashboardScreen: React.FC = () => {
       unit: '°F',
       status: 'normal',
       color: colors.medicalOrange,
+      trend: 'stable',
     },
   ];
 
@@ -113,20 +118,16 @@ const DashboardScreen: React.FC = () => {
         {/* Vitals Grid */}
         <View style={styles.vitalsGrid}>
           {vitalsData.map((vital, index) => (
-            <Card key={index} style={styles.vitalCard}>
-              <View style={styles.vitalHeader}>
-                <View style={[styles.vitalIcon, { backgroundColor: vital.color + '20' }]}>
-                  <Icon name={vital.icon} size={24} color={vital.color} />
-                </View>
-                <Icon name="trending-up" size={16} color={colors.medicalGreen} />
-              </View>
-              <Text style={styles.vitalValue}>{vital.value}</Text>
-              <Text style={styles.vitalUnit}>{vital.unit}</Text>
-              <Text style={styles.vitalTitle}>{vital.title}</Text>
-              <Text style={[styles.vitalStatus, { color: colors.medicalGreen }]}>
-                {vital.status}
-              </Text>
-            </Card>
+            <VitalCard
+              key={index}
+              icon={vital.icon}
+              title={vital.title}
+              value={vital.value}
+              unit={vital.unit}
+              status={vital.status as 'normal' | 'warning' | 'error'}
+              color={vital.color}
+              trend={vital.trend as 'up' | 'down' | 'stable'}
+            />
           ))}
         </View>
 
@@ -218,41 +219,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
-  },
-  vitalCard: {
-    width: '48%',
-    marginBottom: spacing.md,
-  },
-  vitalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  vitalIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  vitalValue: {
-    ...typography.h2,
-    marginBottom: spacing.xs,
-  },
-  vitalUnit: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  vitalTitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  vitalStatus: {
-    ...typography.small,
-    fontWeight: '600',
   },
   summaryCard: {
     marginBottom: spacing.lg,
